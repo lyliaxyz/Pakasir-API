@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio | Digital Product</title>
+  <style>
+    :root{
+      --primary:#6366f1;
+      --secondary:#22c55e;
+      --bg:#f8fafc;
+      --text:#1f2933;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Segoe UI,system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:60px 20px;
+      text-align:center;
+      background:linear-gradient(135deg,var(--primary),#3b82f6);
+      color:#fff;
+    }
+    header h1{margin:0;font-size:2.5rem}
+    header p{opacity:.9}
+    section{
+      max-width:900px;
+      margin:auto;
+      padding:40px 20px;
+    }
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:25px;
+      box-shadow:0 10px 25px rgba(0,0,0,.05);
+      margin-bottom:20px;
+    }
+    .products{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:20px;
+    }
+    button{
+      background:var(--primary);
+      color:#fff;
+      border:none;
+      padding:12px 18px;
+      border-radius:10px;
+      font-size:14px;
+      cursor:pointer;
+    }
+    button:hover{opacity:.9}
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      margin-bottom:10px;
+    }
+    img.qr{max-width:260px;margin:20px auto;display:block}
+    footer{
+      text-align:center;
+      padding:30px;
+      font-size:14px;
+      opacity:.7;
+    }
+  </style>
+</head>
+<body><header>
+  <h1>Nama Kamu</h1>
+  <p>Digital Script • Automation • Bot Developer</p>
+</header><section>
+  <div class="card">
+    <h2>👋 Tentang Saya</h2>
+    <p>Saya menyediakan script premium & automation tools. Setelah pembayaran berhasil, link download akan otomatis aktif.</p>
+  </div>  <div class="card">
+    <h2>📦 Produk Script</h2>
+    <div class="products">
+      <div class="card">
+        <h3>Script Bot A</h3>
+        <p>Harga: Rp 50.000</p>
+        <button onclick="buatQRIS('scriptA',50000)">Beli & Bayar</button>
+      </div>
+      <div class="card">
+        <h3>Script Bot B</h3>
+        <p>Harga: Rp 100.000</p>
+        <button onclick="buatQRIS('scriptB',100000)">Beli & Bayar</button>
+      </div>
+    </div>
+  </div>  <div class="card">
+    <h2>💳 Pembayaran QRIS</h2>
+    <p>Scan QRIS di bawah untuk menyelesaikan pembayaran</p>
+    <img id="qris" class="qr" />
+    <p id="orderInfo"></p>
+  </div>  <div class="card">
+    <h2>🔎 Cek Status & Download</h2>
+    <input id="order_id" placeholder="Masukkan Order ID" />
+    <button onclick="cekStatus()">Cek Transaksi</button>
+    <p id="status"></p>
+    <a id="download" target="_blank"></a>
+  </div>
+</section><footer>© 2026 Nama Kamu • Powered by Pakasir</footer><script>
+const API_KEY = 'jjLQYS6efHES3Z4UjKiM3yTn7VXJa3gy';
+const PROJECT = 'shin-yagami-transaction';
+
+let produkTerpilih = null;
+
+async function buatQRIS(produk, harga){
+  produkTerpilih = produk;
+  const order_id = 'INV-' + Date.now();
+
+  const res = await fetch('https://app.pakasir.com/api/transactioncreate/qris',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      project:PROJECT,
+      order_id,
+      amount:harga,
+      api_key:API_KEY
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById('qris').src = 'data:image/png;base64,' + data.payment.qr_image;
+  document.getElementById('orderInfo').innerText = 'Order ID: ' + order_id;
+}
+
+async function cekStatus(){
+  const order = document.getElementById('order_id').value;
+  const res = await fetch(`https://app.pakasir.com/api/transactiondetail?project=${PROJECT}&order_id=${order}&api_key=${API_KEY}`);
+  const data = await res.json();
+
+  if(data.transaction && data.transaction.status === 'PAID'){
+    document.getElementById('status').innerText = '✅ Pembayaran berhasil';
+    const link = produkTerpilih === 'scriptA' 
+      ? 'https://domainkamu.com/download/scriptA.zip'
+      : 'https://domainkamu.com/download/scriptB.zip';
+    const a = document.getElementById('download');
+    a.href = link;
+    a.innerText = '⬇️ Download Script';
+  } else {
+    document.getElementById('status').innerText = '⏳ Belum dibayar / tidak ditemukan';
+  }
+}
+</script></body>
+</html>
